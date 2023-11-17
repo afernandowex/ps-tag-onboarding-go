@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: cmd/user-api/Dockerfile
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      APP_PORT: 8080
+  mysql:
+    image: mysql:latest
+    container_name: mysqlDB
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: wex_rpc_root_password
+      MYSQL_DATABASE: users
+      MYSQL_USER: wex_rpc_user
+      MYSQL_PASSWORD: wex_rpc_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 30s
+      retries: 10
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: always
+volumes:
+  mysql_data:
