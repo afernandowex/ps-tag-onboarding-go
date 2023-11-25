@@ -18,12 +18,17 @@ type UserValidationService interface {
 	ValidateUserID(ID *string) []string
 }
 
+type IUserService interface {
+	FindUserByID(ID *string) (*model.User, errors.IErrorMessage)
+	SaveUser(user *model.User) (*model.User, errors.IErrorMessage)
+}
+
 type UserService struct {
 	repository repository.IUserRepository
 	validator  validation.IUserValidationService
 }
 
-func NewUserService(repository repository.IUserRepository, validator validation.IUserValidationService) *UserService {
+func NewUserService(repository repository.IUserRepository, validator validation.IUserValidationService) IUserService {
 	return &UserService{repository: repository, validator: validator}
 }
 

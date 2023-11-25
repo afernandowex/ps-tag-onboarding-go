@@ -3,6 +3,7 @@ package mysql
 import (
 	"database/sql"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/model"
@@ -11,7 +12,7 @@ import (
 )
 
 func InitialiseMySQL() (db *gorm.DB) {
-	dsn := "wex_rpc_user:wex_rpc_password@tcp(mysqlDB)/users"
+	dsn := os.Getenv("MYSQL_CONNECTION_STRING")
 	sqlDB := getSQLConnection(dsn)
 	db, err := gorm.Open(mysql.New(mysql.Config{
 		Conn: sqlDB,
