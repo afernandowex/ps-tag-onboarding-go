@@ -12,16 +12,12 @@ type IUserRepository interface {
 }
 
 type UserRepository struct {
-	db *gorm.DB
-}
-
-func NewUserRepository(db *gorm.DB) IUserRepository {
-	return &UserRepository{db: db}
+	Db *gorm.DB
 }
 
 func (repo *UserRepository) FindByID(id int32) (*model.User, error) {
 	var user model.User
-	result := repo.db.First(&user, id)
+	result := repo.Db.First(&user, id)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -30,7 +26,7 @@ func (repo *UserRepository) FindByID(id int32) (*model.User, error) {
 }
 
 func (repo *UserRepository) SaveUser(user *model.User) (*model.User, error) {
-	result := repo.db.Create(&user)
+	result := repo.Db.Create(&user)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -40,7 +36,7 @@ func (repo *UserRepository) SaveUser(user *model.User) (*model.User, error) {
 
 func (repo *UserRepository) ExistsByFirstNameAndLastName(user *model.User) bool {
 	var count int64
-	tx := repo.db.Model(&model.User{}).Where("first_name = ? AND last_name = ?", user.FirstName, user.LastName).Count(&count)
+	tx := repo.Db.Model(&model.User{}).Where("first_name = ? AND last_name = ?", user.FirstName, user.LastName).Count(&count)
 	if tx.Error != nil {
 		panic(tx.Error)
 	}

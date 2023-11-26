@@ -17,13 +17,13 @@ import (
 
 func main() {
 	db := mysql.InitialiseMySQL()
-	repo := repository.NewUserRepository(db)
-	validator := validation.NewUserValidationService(repo)
-	service := service.NewUserService(repo, validator)
-	controller := controller.NewUserController(service)
+	var repo repository.IUserRepository = &repository.UserRepository{Db: db}
+	var validator validation.IUserValidationService = &validation.UserValidationService{UserRepository: repo}
+	var service service.IUserService = &service.UserService{Repository: repo, Validator: validator}
+	var controller controller.IUserController = &controller.UserController{Service: service}
 
 	e := echo.New()
-	routes := routing.NewUserRoutes(controller)
+	routes := routing.Routes{Controller: controller}
 	routes.InitializeRoutes(e)
 
 	// Fetch HttpPort from environment variable

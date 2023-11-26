@@ -1,10 +1,9 @@
-package repository_test
+package repository
 
 import (
 	"testing"
 
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/model"
-	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/repository"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -19,7 +18,7 @@ func TestUserRepository(t *testing.T) {
 		t.Fatalf("failed to migrate database: %v", err)
 	}
 
-	repo := repository.NewUserRepository(db)
+	var repo IUserRepository = &UserRepository{Db: db}
 
 	t.Run("SaveUser", func(t *testing.T) {
 		user := &model.User{

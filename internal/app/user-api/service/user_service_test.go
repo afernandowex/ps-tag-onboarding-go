@@ -1,4 +1,4 @@
-package service_test
+package service
 
 import (
 	"net/http"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/model"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/repository"
-	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/service"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/validation"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/sqlite"
@@ -22,11 +21,11 @@ func TestUserService(t *testing.T) {
 		t.Fatalf("failed to migrate database: %v", err)
 	}
 
-	repo := repository.NewUserRepository(db)
+	var repo repository.IUserRepository = &repository.UserRepository{Db: db}
 
 	t.Run("SaveUser", func(t *testing.T) {
-		validator := validation.NewUserValidationService(repo)
-		service := service.NewUserService(repo, validator)
+		var validator validation.IUserValidationService = &validation.UserValidationService{UserRepository: repo}
+		var service IUserService = &UserService{Repository: repo, Validator: validator}
 
 		// Test with a valid user
 		user := &model.User{
@@ -60,8 +59,8 @@ func TestUserService(t *testing.T) {
 	})
 
 	t.Run("FindUserByID", func(t *testing.T) {
-		validator := validation.NewUserValidationService(repo)
-		service := service.NewUserService(repo, validator)
+		var validator validation.IUserValidationService = &validation.UserValidationService{UserRepository: repo}
+		var service IUserService = &UserService{Repository: repo, Validator: validator}
 
 		userIdOne := "1"
 		// Test with a valid user ID

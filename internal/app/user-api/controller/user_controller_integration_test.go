@@ -28,10 +28,10 @@ func TestListUsers(t *testing.T) {
 		t.Fatalf("failed to migrate database: %v", err)
 	}
 
-	repo := repository.NewUserRepository(db)
-	validator := validation.NewUserValidationService(repo)
-	service := service.NewUserService(repo, validator)
-	controller := NewUserController(service)
+	var repo repository.IUserRepository = &repository.UserRepository{Db: db}
+	var validator validation.IUserValidationService = &validation.UserValidationService{UserRepository: repo}
+	var service service.IUserService = &service.UserService{Repository: repo, Validator: validator}
+	var controller IUserController = &UserController{Service: service}
 
 	t.Run("Return user not found when invalid user", func(t *testing.T) {
 		e := echo.New()

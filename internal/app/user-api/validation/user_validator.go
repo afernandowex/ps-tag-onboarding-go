@@ -11,15 +11,11 @@ type IUserValidationService interface {
 	ValidateUserID(ID *string) []string
 }
 
-type userValidationServiceImpl struct {
-	userRepository repository.IUserRepository
+type UserValidationService struct {
+	UserRepository repository.IUserRepository
 }
 
-func NewUserValidationService(userRepository repository.IUserRepository) IUserValidationService {
-	return &userValidationServiceImpl{userRepository: userRepository}
-}
-
-func (s *userValidationServiceImpl) ValidateUserID(ID *string) []string {
+func (s *UserValidationService) ValidateUserID(ID *string) []string {
 	var validations = []func(ID *string) string{
 		s.validateID,
 	}
@@ -35,7 +31,7 @@ func (s *userValidationServiceImpl) ValidateUserID(ID *string) []string {
 	return errors
 }
 
-func (s *userValidationServiceImpl) validateID(ID *string) string {
+func (s *UserValidationService) validateID(ID *string) string {
 	if ID == nil {
 		return constant.ErrorInvalidUserID
 	}
@@ -54,7 +50,7 @@ func containsOnlyDigits(str string) bool {
 	return true
 }
 
-func (s *userValidationServiceImpl) ValidateUser(user *model.User) []string {
+func (s *UserValidationService) ValidateUser(user *model.User) []string {
 	var validations = []func(user *model.User) string{
 		s.validateName,
 		s.validateEmail,
@@ -72,24 +68,24 @@ func (s *userValidationServiceImpl) ValidateUser(user *model.User) []string {
 	return errors
 }
 
-func (s *userValidationServiceImpl) validateName(user *model.User) string {
+func (s *UserValidationService) validateName(user *model.User) string {
 	if user.FirstName == "" || user.LastName == "" {
 		return constant.ErrorNameRequired
 	}
-	if s.userRepository.ExistsByFirstNameAndLastName(user) {
+	if s.UserRepository.ExistsByFirstNameAndLastName(user) {
 		return constant.ErrorNameAlreadyExists
 	}
 	return ""
 }
 
-func (s *userValidationServiceImpl) validateAge(user *model.User) string {
+func (s *UserValidationService) validateAge(user *model.User) string {
 	if user.Age < 18 {
 		return constant.ErrorAgeMinimum
 	}
 	return ""
 }
 
-func (s *userValidationServiceImpl) validateEmail(user *model.User) string {
+func (s *UserValidationService) validateEmail(user *model.User) string {
 	if user.Email == "" {
 		return constant.ErrorEmailRequired
 	}

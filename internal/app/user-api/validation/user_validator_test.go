@@ -1,4 +1,4 @@
-package validation_test
+package validation
 
 import (
 	"testing"
@@ -6,7 +6,6 @@ import (
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/constant"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/model"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/repository"
-	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/validation"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -20,8 +19,8 @@ func TestUserValidationService_ValidateUser(t *testing.T) {
 		t.Fatalf("failed to migrate database: %v", err)
 	}
 
-	userRepository := repository.NewUserRepository(db)
-	userValidationService := validation.NewUserValidationService(userRepository)
+	var userRepository repository.IUserRepository = &repository.UserRepository{Db: db}
+	var validator IUserValidationService = &UserValidationService{UserRepository: userRepository}
 
 	testUserOne := model.User{FirstName: "Wex", LastName: "User", Email: "wexuser@wexinc.com", Age: 18}
 
@@ -96,7 +95,7 @@ func TestUserValidationService_ValidateUser(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual := userValidationService.ValidateUser(tt.user)
+			actual := validator.ValidateUser(tt.user)
 			if len(actual) != len(tt.expected) {
 				t.Errorf("Expected %d errors, but got %d", len(tt.expected), len(actual))
 			}

@@ -16,31 +16,30 @@ type IUserController interface {
 }
 
 type UserController struct {
-	service service.IUserService
-}
-
-func NewUserController(service service.IUserService) IUserController {
-	controller := UserController{service: service}
-	return &controller
+	Service service.IUserService
 }
 
 func (controller *UserController) FindUser(c echo.Context) error {
 	id := c.Param("id")
-	user, errorMessage := controller.service.FindUserByID(&id)
+	user, errorMessage := controller.Service.FindUserByID(&id)
+	c.Response().Header().Add(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	if errorMessage != nil {
 		return c.JSON(errorMessage.HttpStatus(), errorMessage)
 	}
+	c.Response().WriteHeader(http.StatusOK)
 	return c.JSON(http.StatusOK, user)
 }
 
 func (controller *UserController) SaveUser(c echo.Context) error {
 	var user model.User
+	c.Response().Header().Add(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	if err := c.Bind(&user); err != nil {
 		return c.JSON(http.StatusBadRequest, errors.NewErrorMessage(constant.ErrorInvalidUserObject, http.StatusBadRequest))
 	}
-	savedUser, errorMessage := controller.service.SaveUser(&user)
+	savedUser, errorMessage := controller.Service.SaveUser(&user)
 	if errorMessage != nil {
 		return c.JSON(errorMessage.HttpStatus(), errorMessage)
 	}
+	c.Response().WriteHeader(http.StatusOK)
 	return c.JSON(http.StatusOK, savedUser)
 }

@@ -1,8 +1,6 @@
 package constant
 
 const (
-	NoUser                 = -1
-	HttpPort               = 8080
 	ErrorEmailRequired     = "Email is required"
 	ErrorEmailFormat       = "Email is not valid"
 	ErrorAgeMinimum        = "Age must be at least 18"
