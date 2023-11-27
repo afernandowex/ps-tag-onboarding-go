@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/constant"
@@ -22,8 +21,6 @@ type UserController struct {
 
 func (controller *UserController) FindUser(c echo.Context) error {
 	id := c.Param("id")
-	fmt.Println("Here")
-	fmt.Println(id)
 	user, errorMessage := controller.Service.FindUserByID(&id)
 	c.Response().Header().Add(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	if errorMessage != nil {

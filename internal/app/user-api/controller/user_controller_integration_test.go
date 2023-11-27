@@ -134,6 +134,7 @@ func TestListUsers(t *testing.T) {
 	})
 
 	t.Run("Add invalid test user 2", func(t *testing.T) {
+		resetDB(db)
 		e := echo.New()
 		routes.InitializeRoutes(e)
 
@@ -165,6 +166,5 @@ func TestListUsers(t *testing.T) {
 		}
 		assert.Equal(t, "Email is not valid, Age must be at least 18", errorMessage.ErrorMessageText)
 		assert.Equal(t, http.StatusBadRequest, errorMessage.ErrorStatus)
-		resetDB(db)
 	})
 }
