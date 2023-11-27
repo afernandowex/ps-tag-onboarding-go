@@ -6,7 +6,7 @@ const (
 	ErrorAgeMinimum        = "Age must be at least 18"
 	ErrorNameRequired      = "Name is required"
 	ErrorNameAlreadyExists = "Name already exists"
-	ErrorInvalidUserID     = "Invalid user ID. Should be a number"
+	ErrorInvalidUserID     = "Invalid user ID."
 	ErrorUserNotFound      = "User not found"
 	ErrorInvalidUserObject = "User object cannot be unmarshalled"
 )

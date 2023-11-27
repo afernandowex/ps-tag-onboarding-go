@@ -1,9 +1,13 @@
 package validation
 
 import (
+	"fmt"
+	"log"
+
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/constant"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/model"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/repository"
+	"github.com/google/uuid"
 )
 
 type IUserValidationService interface {
@@ -35,19 +39,21 @@ func (s *UserValidationService) validateID(ID *string) string {
 	if ID == nil {
 		return constant.ErrorInvalidUserID
 	}
-	if !containsOnlyDigits(*ID) {
+	if !isUUID(*ID) {
 		return constant.ErrorInvalidUserID
 	}
 	return ""
 }
 
-func containsOnlyDigits(str string) bool {
-	for _, char := range str {
-		if char < '0' || char > '9' {
-			return false
-		}
+func isUUID(str string) bool {
+	id, err := uuid.Parse(str)
+
+	if id != uuid.Nil {
+		return true
+	} else {
+		log.Println(fmt.Sprintf("Invalid UUID %s Error:=%s", str, err))
+		return false
 	}
-	return true
 }
 
 func (s *UserValidationService) ValidateUser(user *model.User) []string {

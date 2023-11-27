@@ -3,7 +3,6 @@ package controller_test
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -51,6 +50,7 @@ func TestListUsers(t *testing.T) {
 	var routes = routing.Routes{Controller: controller}
 
 	t.Run("Return user not found when invalid user", func(t *testing.T) {
+		resetDB(db)
 		e := echo.New()
 		routes.InitializeRoutes(e)
 		req := httptest.NewRequest(http.MethodGet, "/find/1", nil)
@@ -58,24 +58,31 @@ func TestListUsers(t *testing.T) {
 
 		e.ServeHTTP(rec, req)
 
-		assert.Equal(t, http.StatusNotFound, rec.Code)
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
 
 		var errorMessage errormessage.ErrorMessage
 		err := json.Unmarshal(rec.Body.Bytes(), &errorMessage)
 		if err != nil {
 			t.Fatalf("failed to unmarshal error response: %v", err)
 		}
-		assert.Equal(t, "User not found", errorMessage.ErrorMessageText)
-		resetDB(db)
+		assert.Equal(t, "Invalid user ID.", errorMessage.ErrorMessageText)
 	})
 
 	t.Run("Return user when valid user", func(t *testing.T) {
+		resetDB(db)
 		user := model.User{FirstName: "WexFirst", LastName: "WexLast", Email: "wexfirst.wexlast@wexinc.com", Age: 18}
 		repo.SaveUser(&user)
 
+		userNew, erro := repo.FindByID(user.ID)
+		fmt.Println("Here")
+		fmt.Println(userNew)
+		fmt.Println(erro)
+
 		e := echo.New()
 		routes.InitializeRoutes(e)
-		req := httptest.NewRequest(http.MethodGet, "/find/1", nil)
+		url := fmt.Sprintf("/find/%s", user.ID.String())
+		fmt.Println(url)
+		req := httptest.NewRequest(http.MethodGet, url, nil)
 		rec := httptest.NewRecorder()
 		e.ServeHTTP(rec, req)
 
@@ -86,19 +93,14 @@ func TestListUsers(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to unmarshal response: %v", err)
 		}
-		assert.Equal(t, int32(1), responseUser.ID)
-		assert.Equal(t, "WexFirst", responseUser.FirstName)
-		assert.Equal(t, "WexLast", responseUser.LastName)
-		assert.Equal(t, "wexfirst.wexlast@wexinc.com", responseUser.Email)
-		assert.Equal(t, int8(18), responseUser.Age)
-		resetDB(db)
+		assert.Equal(t, user.FirstName, responseUser.FirstName)
+		assert.Equal(t, user.LastName, responseUser.LastName)
+		assert.Equal(t, user.Email, responseUser.Email)
+		assert.Equal(t, user.Age, responseUser.Age)
 	})
 
 	t.Run("Add test user 1", func(t *testing.T) {
-		log.Println("HI")
-		userId, gorr := repo.FindByID(1)
-		fmt.Println(userId)
-		fmt.Printf("TEST UER %d", gorr)
+		resetDB(db)
 		e := echo.New()
 		routes.InitializeRoutes(e)
 
@@ -128,8 +130,7 @@ func TestListUsers(t *testing.T) {
 		if error != nil {
 			t.Fatalf("failed to unmarshal error response: %v", err)
 		}
-		assert.Equal(t, int32(1), responseUser.ID)
-		resetDB(db)
+		assert.Equal(t, userOne.FirstName, responseUser.FirstName)
 	})
 
 	t.Run("Add invalid test user 2", func(t *testing.T) {

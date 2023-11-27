@@ -2,11 +2,12 @@ package repository
 
 import (
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/model"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type IUserRepository interface {
-	FindByID(id int32) (*model.User, error)
+	FindByID(id uuid.UUID) (*model.User, error)
 	SaveUser(user *model.User) (*model.User, error)
 	ExistsByFirstNameAndLastName(user *model.User) bool
 }
@@ -15,7 +16,7 @@ type UserRepository struct {
 	Db *gorm.DB
 }
 
-func (repo *UserRepository) FindByID(id int32) (*model.User, error) {
+func (repo *UserRepository) FindByID(id uuid.UUID) (*model.User, error) {
 	var user model.User
 	result := repo.Db.First(&user, id)
 	if result.Error != nil {

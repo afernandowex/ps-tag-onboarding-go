@@ -28,7 +28,6 @@ func TestUserRepository(t *testing.T) {
 		}
 		savedUser, err := repo.SaveUser(user)
 		assert.NoError(t, err)
-		assert.Equal(t, int32(1), savedUser.ID) // primary key autogen check
 		assert.Equal(t, user.FirstName, savedUser.FirstName)
 		assert.Equal(t, user.LastName, savedUser.LastName)
 		assert.Equal(t, user.Email, savedUser.Email)
