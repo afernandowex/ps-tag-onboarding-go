@@ -28,8 +28,6 @@ func InitialiseMySQL() (db *gorm.DB) {
 	if err = db.Exec("TRUNCATE TABLE users").Error; err != nil {
 		panic(fmt.Sprintf("Unable to delete tables %s", err.Error()))
 	}
-	// Seed some users
-	InsertRandomUsers(db)
 
 	return db
 }
@@ -48,15 +46,4 @@ func getSQLConnection(dsn string) *sql.DB {
 		return db
 	}
 	return nil
-}
-
-func InsertRandomUsers(db *gorm.DB) {
-	user1 := model.User{ID: 1, FirstName: "WexFirst", LastName: "WexLast", Email: "wexfirst.wexlast@wexinc.com", Age: 18}
-	user2 := model.User{ID: 2, FirstName: "WexFirst2", LastName: "WexLast2", Email: "wexfirst.wexlast2@wexinc.com", Age: 20}
-	user3 := model.User{ID: 3, FirstName: "WexFirst3", LastName: "WexLast3", Email: "wexfirst.wexlast3@wexinc.com", Age: 25}
-	users := []model.User{user1, user2, user3}
-	tx := db.Create(&users)
-	if tx.Error != nil {
-		panic(fmt.Sprintf("Unable to delete tables %s", tx.Error))
-	}
 }

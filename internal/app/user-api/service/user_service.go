@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/constant"
-	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/errors"
+	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/errormessage"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/model"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/repository"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/validation"
@@ -19,8 +19,8 @@ type UserValidationService interface {
 }
 
 type IUserService interface {
-	FindUserByID(ID *string) (*model.User, errors.IErrorMessage)
-	SaveUser(user *model.User) (*model.User, errors.IErrorMessage)
+	FindUserByID(ID *string) (*model.User, *errormessage.ErrorMessage)
+	SaveUser(user *model.User) (*model.User, *errormessage.ErrorMessage)
 }
 
 type UserService struct {
@@ -28,33 +28,37 @@ type UserService struct {
 	Validator  validation.IUserValidationService
 }
 
-func (service *UserService) FindUserByID(ID *string) (*model.User, errors.IErrorMessage) {
+func (service *UserService) FindUserByID(ID *string) (*model.User, *errormessage.ErrorMessage) {
 	log.Printf("Fetching user with id:= %s", *ID)
 	valErrors := service.Validator.ValidateUserID(ID)
 	if len(valErrors) > 0 {
 		log.Println(valErrors)
-		return nil, errors.NewErrorMessage(strings.Join(valErrors, ", "), http.StatusBadRequest)
+		error := errormessage.NewErrorMessage(strings.Join(valErrors, ", "), http.StatusBadRequest)
+		return nil, &error
 	}
 	id, err := strconv.Atoi(*ID)
 	user, err := service.Repository.FindByID(int32(id))
 	if err != nil {
-		return nil, errors.NewErrorMessage(constant.ErrorUserNotFound, http.StatusNotFound)
+		error := errormessage.NewErrorMessage(constant.ErrorUserNotFound, http.StatusNotFound)
+		return nil, &error
 	}
 
 	return user, nil
 }
 
-func (service *UserService) SaveUser(user *model.User) (*model.User, errors.IErrorMessage) {
+func (service *UserService) SaveUser(user *model.User) (*model.User, *errormessage.ErrorMessage) {
 	log.Printf("Saving user %s %s", user.FirstName, user.LastName)
 	valErrors := service.Validator.ValidateUser(user)
 	if len(valErrors) > 0 {
 		log.Println(valErrors)
-		return nil, errors.NewErrorMessage(strings.Join(valErrors, ", "), http.StatusBadRequest)
+		error := errormessage.NewErrorMessage(strings.Join(valErrors, ", "), http.StatusBadRequest)
+		return nil, &error
 	}
 	savedUser, err := service.Repository.SaveUser(user)
 	if err != nil {
 		log.Printf("Error while saving user %s %s %s", user.FirstName, user.LastName, err.Error())
-		return nil, errors.NewErrorMessage(err.Error(), http.StatusInternalServerError)
+		error := errormessage.NewErrorMessage(err.Error(), http.StatusInternalServerError)
+		return nil, &error
 	}
 	return savedUser, nil
 }

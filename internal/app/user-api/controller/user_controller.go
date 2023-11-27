@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/constant"
-	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/errors"
+	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/errormessage"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/model"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/service"
 	"github.com/labstack/echo/v4"
@@ -34,7 +34,7 @@ func (controller *UserController) SaveUser(c echo.Context) error {
 	var user model.User
 	c.Response().Header().Add(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	if err := c.Bind(&user); err != nil {
-		return c.JSON(http.StatusBadRequest, errors.NewErrorMessage(constant.ErrorInvalidUserObject, http.StatusBadRequest))
+		return c.JSON(http.StatusBadRequest, errormessage.NewErrorMessage(constant.ErrorInvalidUserObject, http.StatusBadRequest))
 	}
 	savedUser, errorMessage := controller.Service.SaveUser(&user)
 	if errorMessage != nil {

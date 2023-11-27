@@ -1,9 +1,4 @@
-package errors
-
-type IErrorMessage interface {
-	Message() string
-	HttpStatus() int
-}
+package errormessage
 
 type ErrorMessage struct {
 	ErrorMessageText string `json:"message"`
@@ -18,6 +13,6 @@ func (e *ErrorMessage) HttpStatus() int {
 	return e.ErrorStatus
 }
 
-func NewErrorMessage(message string, httpStatusCode int) IErrorMessage {
-	return &ErrorMessage{ErrorMessageText: message, ErrorStatus: httpStatusCode}
+func NewErrorMessage(message string, httpStatusCode int) ErrorMessage {
+	return ErrorMessage{ErrorMessageText: message, ErrorStatus: httpStatusCode}
 }
