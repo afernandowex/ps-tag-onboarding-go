@@ -18,7 +18,7 @@ import (
 func main() {
 	db := mysql.InitialiseMySQL()
 	var repo repository.IUserRepository = &repository.UserRepository{Db: db}
-	var validator validation.IUserValidationService = &validation.UserValidationService{UserRepository: repo}
+	var validator validation.IUserValidationService = &validation.UserValidationService{}
 	var service service.IUserService = &service.UserService{Repository: repo, Validator: validator}
 	var controller controller.IUserController = &controller.UserController{Service: service}
 
