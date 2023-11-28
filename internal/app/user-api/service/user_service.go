@@ -53,6 +53,10 @@ func (service *UserService) SaveUser(user *model.User) (*model.User, *errormessa
 	}
 	savedUser, err := service.Repository.SaveUser(user)
 	if err != nil {
+		if err.Error() == constant.ErrorNameAlreadyExists {
+			error := errormessage.NewErrorMessage(constant.ErrorNameAlreadyExists, http.StatusBadRequest)
+			return nil, &error
+		}
 		log.Printf("Error while saving user %s %s %s", user.FirstName, user.LastName, err.Error())
 		error := errormessage.NewErrorMessage(err.Error(), http.StatusInternalServerError)
 		return nil, &error
