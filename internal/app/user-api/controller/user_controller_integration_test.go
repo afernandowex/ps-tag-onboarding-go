@@ -3,6 +3,7 @@ package controller_test
 import (
 	"bytes"
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -22,18 +23,6 @@ import (
 	"gorm.io/gorm"
 )
 
-func resetDB(db *gorm.DB) {
-	err := db.Migrator().DropTable(&model.User{})
-	if err != nil {
-		// Handle error
-	}
-
-	err = db.AutoMigrate(&model.User{})
-	if err != nil {
-		// Handle error
-	}
-}
-
 func TestListUsers(t *testing.T) {
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
 	if err != nil {
@@ -49,8 +38,22 @@ func TestListUsers(t *testing.T) {
 	var controller controller.IUserController = &controller.UserController{Service: service}
 	var routes = routing.Routes{Controller: controller}
 
+	t.Cleanup(func() {
+		// Reset DB between tests.
+		err := db.Migrator().DropTable(&model.User{})
+		if err != nil {
+			log.Fatalln(err)
+			panic(err)
+		}
+
+		err = db.AutoMigrate(&model.User{})
+		if err != nil {
+			log.Fatalln(err)
+			panic(err)
+		}
+	})
+
 	t.Run("Return user not found when invalid user", func(t *testing.T) {
-		resetDB(db)
 		e := echo.New()
 		routes.InitializeRoutes(e)
 		req := httptest.NewRequest(http.MethodGet, "/find/1", nil)
@@ -69,11 +72,10 @@ func TestListUsers(t *testing.T) {
 	})
 
 	t.Run("Return user when valid user", func(t *testing.T) {
-		resetDB(db)
 		user := model.User{FirstName: "WexFirst", LastName: "WexLast", Email: "wexfirst.wexlast@wexinc.com", Age: 18}
 		repo.SaveUser(&user)
 
-		userNew, erro := repo.FindByID(user.ID)
+		userNew, erro := repo.FindByID(&user.ID)
 		fmt.Println("Here")
 		fmt.Println(userNew)
 		fmt.Println(erro)
@@ -100,7 +102,6 @@ func TestListUsers(t *testing.T) {
 	})
 
 	t.Run("Add test user 1", func(t *testing.T) {
-		resetDB(db)
 		e := echo.New()
 		routes.InitializeRoutes(e)
 
@@ -134,7 +135,6 @@ func TestListUsers(t *testing.T) {
 	})
 
 	t.Run("Add invalid test user 2", func(t *testing.T) {
-		resetDB(db)
 		e := echo.New()
 		routes.InitializeRoutes(e)
 

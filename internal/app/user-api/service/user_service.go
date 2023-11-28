@@ -13,11 +13,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type UserValidationService interface {
-	ValidateUser(user *model.User) []string
-	ValidateUserID(ID *string) []string
-}
-
 type IUserService interface {
 	FindUserByID(ID *string) (*model.User, *errormessage.ErrorMessage)
 	SaveUser(user *model.User) (*model.User, *errormessage.ErrorMessage)
@@ -37,14 +32,9 @@ func (service *UserService) FindUserByID(ID *string) (*model.User, *errormessage
 		return nil, &error
 	}
 
-	id, err := uuid.Parse(*ID)
+	id, _ := uuid.Parse(*ID) // UUID parse errors are already caught in Validator
 
-	if err != nil {
-		error := errormessage.NewErrorMessage(constant.ErrorInvalidUserID, http.StatusBadRequest)
-		return nil, &error
-	}
-
-	user, err := service.Repository.FindByID(id)
+	user, err := service.Repository.FindByID(&id)
 	if err != nil {
 		error := errormessage.NewErrorMessage(constant.ErrorUserNotFound, http.StatusNotFound)
 		return nil, &error

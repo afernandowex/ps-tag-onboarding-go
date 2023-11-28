@@ -11,11 +11,11 @@ import (
 )
 
 type MockUserRepository struct {
-	Users map[uuid.UUID]*model.User
+	Users map[string]*model.User
 }
 
-func (repo *MockUserRepository) FindByID(id uuid.UUID) (*model.User, error) {
-	user, ok := repo.Users[id]
+func (repo *MockUserRepository) FindByID(id *uuid.UUID) (*model.User, error) {
+	user, ok := repo.Users[id.String()]
 	if !ok {
 		return nil, errors.New("User not found")
 	}
@@ -24,7 +24,7 @@ func (repo *MockUserRepository) FindByID(id uuid.UUID) (*model.User, error) {
 
 func (repo *MockUserRepository) SaveUser(user *model.User) (*model.User, error) {
 	user.ID = uuid.New()
-	repo.Users[user.ID] = user
+	repo.Users[user.ID.String()] = user
 	return user, nil
 }
 
@@ -33,22 +33,31 @@ func (repo *MockUserRepository) ExistsByFirstNameAndLastName(user *model.User) b
 }
 
 type MockUserValidationService struct {
-	ValidationErrors map[*model.User][]string
+	ValidationErrorsBasedOnUser map[*model.User][]string
+	ValidationErrorsBasedOnID   map[string][]string
 }
 
 func (validator *MockUserValidationService) ValidateUser(user *model.User) []string {
-	return validator.ValidationErrors[user]
+	return validator.ValidationErrorsBasedOnUser[user]
 }
 
 func (validator *MockUserValidationService) ValidateUserID(ID *string) []string {
-	return nil
+	return validator.ValidationErrorsBasedOnID[*ID]
 }
 
 func TestFindUserByID(t *testing.T) {
 	repo := &MockUserRepository{
-		Users: make(map[uuid.UUID]*model.User),
+		Users: make(map[string]*model.User),
 	}
-	validator := &MockUserValidationService{}
+	validator := &MockUserValidationService{
+		ValidationErrorsBasedOnUser: make(map[*model.User][]string),
+		ValidationErrorsBasedOnID:   make(map[string][]string),
+	}
+	t.Cleanup(func() {
+		repo.Users = make(map[string]*model.User)
+		validator.ValidationErrorsBasedOnUser = make(map[*model.User][]string)
+		validator.ValidationErrorsBasedOnID = make(map[string][]string)
+	})
 	service := &UserService{
 		Repository: repo,
 		Validator:  validator,
@@ -62,23 +71,25 @@ func TestFindUserByID(t *testing.T) {
 			Email:     "john.doe@example.com",
 			Age:       25,
 		}
-		repo.Users[user.ID] = user
 
 		userID := user.ID.String()
+
+		repo.Users[userID] = user
 
 		result, err := service.FindUserByID(&userID)
 		assert.Nil(t, err)
 		assert.Equal(t, user, result)
 	})
 
-	t.Run("Return error when invalid UUID", func(t *testing.T) {
+	t.Run("Validator test - Return error when invalid UUID", func(t *testing.T) {
 		ID := "invalid"
+		validator.ValidationErrorsBasedOnID[ID] = []string{"Invalid user ID."}
 		result, err := service.FindUserByID(&ID)
 		assert.Nil(t, result)
 		assert.Equal(t, &errormessage.ErrorMessage{ErrorMessageText: "Invalid user ID.", ErrorStatus: 400}, err)
 	})
 
-	t.Run("Return error when not found UUID", func(t *testing.T) {
+	t.Run("Repository test - Return error when not found UUID", func(t *testing.T) {
 		ID := uuid.New().String()
 		result, err := service.FindUserByID(&ID)
 		assert.Nil(t, result)
@@ -88,9 +99,17 @@ func TestFindUserByID(t *testing.T) {
 
 func TestSaveUser(t *testing.T) {
 	repo := &MockUserRepository{
-		Users: make(map[uuid.UUID]*model.User),
+		Users: make(map[string]*model.User),
 	}
-	validator := &MockUserValidationService{}
+	validator := &MockUserValidationService{
+		ValidationErrorsBasedOnUser: make(map[*model.User][]string),
+		ValidationErrorsBasedOnID:   make(map[string][]string),
+	}
+	t.Cleanup(func() {
+		repo.Users = make(map[string]*model.User)
+		validator.ValidationErrorsBasedOnUser = make(map[*model.User][]string)
+		validator.ValidationErrorsBasedOnID = make(map[string][]string)
+	})
 	service := &UserService{
 		Repository: repo,
 		Validator:  validator,
@@ -120,9 +139,7 @@ func TestSaveUser(t *testing.T) {
 			Email:     "invalidemail",
 			Age:       16,
 		}
-		validator.ValidationErrors = map[*model.User][]string{
-			user: {"Email is not valid", "Age must be at least 18"},
-		}
+		validator.ValidationErrorsBasedOnUser[user] = []string{"Email is not valid", "Age must be at least 18"}
 
 		result, err := service.SaveUser(user)
 		assert.Nil(t, result)

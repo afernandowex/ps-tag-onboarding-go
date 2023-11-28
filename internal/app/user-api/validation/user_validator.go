@@ -20,16 +20,14 @@ type UserValidationService struct {
 }
 
 func (s *UserValidationService) ValidateUserID(ID *string) []string {
-	var validations = []func(ID *string) string{
-		s.validateID,
-	}
-
+	log.Printf("ValidateUserID %s", *ID)
 	var errors []string
-	for _, validation := range validations {
-		err := validation(ID)
-		if err != "" {
-			errors = append(errors, err)
-		}
+	if ID == nil {
+		errors = append(errors, constant.ErrorInvalidUserID)
+	}
+	fmt.Printf("isUUID %t", isUUID(*ID))
+	if !isUUID(*ID) {
+		errors = append(errors, constant.ErrorInvalidUserID)
 	}
 
 	return errors
@@ -39,6 +37,7 @@ func (s *UserValidationService) validateID(ID *string) string {
 	if ID == nil {
 		return constant.ErrorInvalidUserID
 	}
+	fmt.Printf("isUUID %t", isUUID(*ID))
 	if !isUUID(*ID) {
 		return constant.ErrorInvalidUserID
 	}

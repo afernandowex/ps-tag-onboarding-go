@@ -7,16 +7,23 @@ import (
 )
 
 type IUserRepository interface {
-	FindByID(id uuid.UUID) (*model.User, error)
+	FindByID(id *uuid.UUID) (*model.User, error)
 	SaveUser(user *model.User) (*model.User, error)
 	ExistsByFirstNameAndLastName(user *model.User) bool
 }
 
-type UserRepository struct {
-	Db *gorm.DB
+type DB interface {
+	First(dest interface{}, conds ...interface{}) (tx *gorm.DB)
+	Create(value interface{}) (tx *gorm.DB)
+	Model(value interface{}) (tx *gorm.DB)
+	Where(query interface{}, args ...interface{}) (tx *gorm.DB)
 }
 
-func (repo *UserRepository) FindByID(id uuid.UUID) (*model.User, error) {
+type UserRepository struct {
+	Db DB
+}
+
+func (repo *UserRepository) FindByID(id *uuid.UUID) (*model.User, error) {
 	var user model.User
 	result := repo.Db.First(&user, id)
 	if result.Error != nil {
