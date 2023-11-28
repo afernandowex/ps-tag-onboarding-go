@@ -20,7 +20,7 @@ func TestUserValidationService_ValidateUser(t *testing.T) {
 	}
 
 	var userRepository repository.IUserRepository = &repository.UserRepository{Db: db}
-	var validator IUserValidationService = &UserValidationService{UserRepository: userRepository}
+	var validator IUserValidationService = &UserValidationService{}
 
 	testUserOne := model.User{FirstName: "Wex", LastName: "User", Email: "wexuser@wexinc.com", Age: 18}
 
@@ -60,16 +60,6 @@ func TestUserValidationService_ValidateUser(t *testing.T) {
 				Email:     "johndoe@example.com",
 			},
 			expected: []string{constant.ErrorNameRequired},
-		},
-		{
-			name: "Duplicate first and last name",
-			user: &model.User{
-				FirstName: "Wex",
-				LastName:  "User",
-				Age:       30,
-				Email:     "wexuser@wexinc.com",
-			},
-			expected: []string{constant.ErrorNameAlreadyExists},
 		},
 		{
 			name: "invalid age",

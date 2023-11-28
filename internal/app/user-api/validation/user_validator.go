@@ -3,10 +3,10 @@ package validation
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/constant"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/model"
-	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/repository"
 	"github.com/google/uuid"
 )
 
@@ -16,32 +16,15 @@ type IUserValidationService interface {
 }
 
 type UserValidationService struct {
-	UserRepository repository.IUserRepository
 }
 
 func (s *UserValidationService) ValidateUserID(ID *string) []string {
-	log.Printf("ValidateUserID %s", *ID)
 	var errors []string
-	if ID == nil {
-		errors = append(errors, constant.ErrorInvalidUserID)
-	}
-	fmt.Printf("isUUID %t", isUUID(*ID))
-	if !isUUID(*ID) {
+	if ID == nil || !isUUID(*ID) {
 		errors = append(errors, constant.ErrorInvalidUserID)
 	}
 
 	return errors
-}
-
-func (s *UserValidationService) validateID(ID *string) string {
-	if ID == nil {
-		return constant.ErrorInvalidUserID
-	}
-	fmt.Printf("isUUID %t", isUUID(*ID))
-	if !isUUID(*ID) {
-		return constant.ErrorInvalidUserID
-	}
-	return ""
 }
 
 func isUUID(str string) bool {
@@ -56,18 +39,18 @@ func isUUID(str string) bool {
 }
 
 func (s *UserValidationService) ValidateUser(user *model.User) []string {
-	var validations = []func(user *model.User) string{
-		s.validateName,
-		s.validateEmail,
-		s.validateAge,
-	}
-
 	var errors []string
-	for _, validation := range validations {
-		err := validation(user)
-		if err != "" {
-			errors = append(errors, err)
-		}
+	var err string = s.validateName(user)
+	if err != "" {
+		errors = append(errors, err)
+	}
+	err = s.validateAge(user)
+	if err != "" {
+		errors = append(errors, err)
+	}
+	err = s.validateEmail(user)
+	if err != "" {
+		errors = append(errors, err)
 	}
 
 	return errors
@@ -76,9 +59,6 @@ func (s *UserValidationService) ValidateUser(user *model.User) []string {
 func (s *UserValidationService) validateName(user *model.User) string {
 	if user.FirstName == "" || user.LastName == "" {
 		return constant.ErrorNameRequired
-	}
-	if s.UserRepository.ExistsByFirstNameAndLastName(user) {
-		return constant.ErrorNameAlreadyExists
 	}
 	return ""
 }
@@ -94,17 +74,8 @@ func (s *UserValidationService) validateEmail(user *model.User) string {
 	if user.Email == "" {
 		return constant.ErrorEmailRequired
 	}
-	if !containsAtSymbol(user.Email) {
+	if !strings.Contains(user.Email, "@") {
 		return constant.ErrorEmailFormat
 	}
 	return ""
-}
-
-func containsAtSymbol(email string) bool {
-	for _, char := range email {
-		if char == '@' {
-			return true
-		}
-	}
-	return false
 }

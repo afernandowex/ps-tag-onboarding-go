@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"errors"
+
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/model"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -34,6 +36,9 @@ func (repo *UserRepository) FindByID(id *uuid.UUID) (*model.User, error) {
 }
 
 func (repo *UserRepository) SaveUser(user *model.User) (*model.User, error) {
+	if repo.ExistsByFirstNameAndLastName(user) {
+		return nil, errors.New("USER_ALREADY_EXISTS")
+	}
 	result := repo.Db.Create(&user)
 	if result.Error != nil {
 		return nil, result.Error

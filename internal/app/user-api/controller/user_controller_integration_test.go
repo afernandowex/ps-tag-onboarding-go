@@ -33,7 +33,7 @@ func TestListUsers(t *testing.T) {
 	}
 
 	var repo repository.IUserRepository = &repository.UserRepository{Db: db}
-	var validator validation.IUserValidationService = &validation.UserValidationService{UserRepository: repo}
+	var validator validation.IUserValidationService = &validation.UserValidationService{}
 	var service service.IUserService = &service.UserService{Repository: repo, Validator: validator}
 	var controller controller.IUserController = &controller.UserController{Service: service}
 	var routes = routing.Routes{Controller: controller}
@@ -164,7 +164,7 @@ func TestListUsers(t *testing.T) {
 		if error != nil {
 			t.Fatalf("failed to unmarshal error response: %v", err)
 		}
-		assert.Equal(t, "Email is not valid, Age must be at least 18", errorMessage.ErrorMessageText)
+		assert.Equal(t, "Age must be at least 18, Email is not valid", errorMessage.ErrorMessageText)
 		assert.Equal(t, http.StatusBadRequest, errorMessage.ErrorStatus)
 	})
 }
