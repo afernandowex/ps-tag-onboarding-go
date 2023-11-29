@@ -26,14 +26,20 @@ func (m *MockDB) Create(value interface{}) (tx *gorm.DB) {
 	return args.Get(0).(*gorm.DB)
 }
 
-func (m *MockDB) Model(value interface{}) (tx *gorm.DB) {
-	args := m.Called(value)
-	return args.Get(0).(*gorm.DB)
+func (m *MockDB) Model(value interface{}) *gorm.DB {
+	m.Called(value)
+	return &gorm.DB{}
 }
 
-func (m *MockDB) Where(query interface{}, arguments ...interface{}) (tx *gorm.DB) {
-	args := m.Called(query, arguments)
-	return args.Get(0).(*gorm.DB)
+func (m *MockDB) Where(query interface{}, arguments ...interface{}) *gorm.DB {
+	m.Called(query, arguments)
+	return &gorm.DB{}
+}
+
+func (m *MockDB) Count(count *int64) *gorm.DB {
+	m.Called(count)
+	*count = 1
+	return &gorm.DB{}
 }
 
 func TestUserRepository_FindByID(t *testing.T) {
@@ -94,41 +100,22 @@ func TestUserRepository_FindByID(t *testing.T) {
 	})
 }
 
-// func TestUserRepository_SaveUser(t *testing.T) {
+// func TestUserRepository_ExistsByFirstAndLastName(t *testing.T) {
 // 	mockDB := new(MockDB)
 // 	repo := repository.UserRepository{Db: mockDB}
 
 // 	user := &model.User{
 // 		FirstName: "John",
 // 		LastName:  "Doe",
-// 		Email:     "john.doe@example.com",
+// 		Email:     "john.doe@gmail.com",
 // 		Age:       18,
 // 	}
 
-// 	mockDB.On("Save", user).Return(nil)
-
-// 	savedUser, err := repo.SaveUser(user)
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, user, savedUser)
-// }
-
-// func TestUserRepository_ExistsByFirstNameAndLastName(t *testing.T) {
-// 	mockDB := new(MockDB)
-// 	repo := repository.UserRepository{Db: mockDB}
-
-// 	user := &model.User{
-// 		FirstName: "John",
-// 		LastName:  "Doe",
-// 		Email:     "john.doe@example.com",
-// 	}
-
-// 	mockDB.On("First", mock.Anything, "first_name = ? AND last_name = ?", user.FirstName, user.LastName).Return(nil)
-// 	mockDB.On("First", mock.Anything, "first_name = ? AND last_name = ?", user.FirstName, "Smith").Return(&gorm.DB{})
-
-// 	exists := repo.ExistsByFirstNameAndLastName(user)
-// 	assert.True(t, exists)
-
-// 	user.LastName = "Smith"
-// 	exists = repo.ExistsByFirstNameAndLastName(user)
-// 	assert.False(t, exists)
+// 	mockDB.On("Model", &model.User{}).Return(mockDB)
+// 	mockDB.On("Where", "first_name = ? AND last_name = ?", user.FirstName, user.LastName).Return(mockDB)
+// 	mockDB.On("Count", mock.Anything).Run(func(args mock.Arguments) {
+// 		countArg := args.Get(0).(*int64)
+// 		*countArg = 1
+// 	}).Return(mockDB)
+// 	repo.ExistsByFirstNameAndLastName(user)
 // }

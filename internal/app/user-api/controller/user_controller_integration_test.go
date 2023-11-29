@@ -23,6 +23,21 @@ import (
 	"gorm.io/gorm"
 )
 
+func testCleanUp(db *gorm.DB) {
+	// Reset DB between tests.
+	err := db.Migrator().DropTable(&model.User{})
+	if err != nil {
+		log.Fatalln(err)
+		panic(err)
+	}
+
+	err = db.AutoMigrate(&model.User{})
+	if err != nil {
+		log.Fatalln(err)
+		panic(err)
+	}
+}
+
 func TestListUsers(t *testing.T) {
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
 	if err != nil {
@@ -37,21 +52,6 @@ func TestListUsers(t *testing.T) {
 	var service service.IUserService = &service.UserService{Repository: repo, Validator: validator}
 	var controller controller.IUserController = &controller.UserController{Service: service}
 	var routes = routing.Routes{Controller: controller}
-
-	t.Cleanup(func() {
-		// Reset DB between tests.
-		err := db.Migrator().DropTable(&model.User{})
-		if err != nil {
-			log.Fatalln(err)
-			panic(err)
-		}
-
-		err = db.AutoMigrate(&model.User{})
-		if err != nil {
-			log.Fatalln(err)
-			panic(err)
-		}
-	})
 
 	t.Run("Return user not found when invalid user", func(t *testing.T) {
 		e := echo.New()
@@ -69,6 +69,9 @@ func TestListUsers(t *testing.T) {
 			t.Fatalf("failed to unmarshal error response: %v", err)
 		}
 		assert.Equal(t, "Invalid user ID.", errorMessage.ErrorMessageText)
+		t.Cleanup(func() {
+			testCleanUp(db)
+		})
 	})
 
 	t.Run("Return user when valid user", func(t *testing.T) {
@@ -99,6 +102,9 @@ func TestListUsers(t *testing.T) {
 		assert.Equal(t, user.LastName, responseUser.LastName)
 		assert.Equal(t, user.Email, responseUser.Email)
 		assert.Equal(t, user.Age, responseUser.Age)
+		t.Cleanup(func() {
+			testCleanUp(db)
+		})
 	})
 
 	t.Run("Add test user 1", func(t *testing.T) {
@@ -132,6 +138,9 @@ func TestListUsers(t *testing.T) {
 			t.Fatalf("failed to unmarshal error response: %v", err)
 		}
 		assert.Equal(t, userOne.FirstName, responseUser.FirstName)
+		t.Cleanup(func() {
+			testCleanUp(db)
+		})
 	})
 
 	t.Run("Add invalid test user 2", func(t *testing.T) {
@@ -166,5 +175,8 @@ func TestListUsers(t *testing.T) {
 		}
 		assert.Equal(t, "Age must be at least 18, Email is not valid", errorMessage.ErrorMessageText)
 		assert.Equal(t, http.StatusBadRequest, errorMessage.ErrorStatus)
+		t.Cleanup(func() {
+			testCleanUp(db)
+		})
 	})
 }

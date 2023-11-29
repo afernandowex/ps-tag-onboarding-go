@@ -20,6 +20,7 @@ type DB interface {
 	Create(value interface{}) (tx *gorm.DB)
 	Model(value interface{}) (tx *gorm.DB)
 	Where(query interface{}, args ...interface{}) (tx *gorm.DB)
+	Count(count *int64) (tx *gorm.DB)
 }
 
 type UserRepository struct {
@@ -49,7 +50,7 @@ func (repo *UserRepository) SaveUser(user *model.User) (*model.User, error) {
 }
 
 func (repo *UserRepository) ExistsByFirstNameAndLastName(user *model.User) bool {
-	var count int64
+	var count int64 = 0
 	tx := repo.Db.Model(&model.User{}).Where("first_name = ? AND last_name = ?", user.FirstName, user.LastName).Count(&count)
 	if tx.Error != nil {
 		panic(tx.Error)
