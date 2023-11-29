@@ -78,15 +78,9 @@ func TestListUsers(t *testing.T) {
 		user := model.User{FirstName: "WexFirst", LastName: "WexLast", Email: "wexfirst.wexlast@wexinc.com", Age: 18}
 		repo.SaveUser(&user)
 
-		userNew, erro := repo.FindByID(&user.ID)
-		fmt.Println("Here")
-		fmt.Println(userNew)
-		fmt.Println(erro)
-
 		e := echo.New()
 		routes.InitializeRoutes(e)
 		url := fmt.Sprintf("/find/%s", user.ID.String())
-		fmt.Println(url)
 		req := httptest.NewRequest(http.MethodGet, url, nil)
 		rec := httptest.NewRecorder()
 		e.ServeHTTP(rec, req)

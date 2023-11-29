@@ -1,8 +1,6 @@
 package validation
 
 import (
-	"fmt"
-	"log"
 	"strings"
 
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/model"
@@ -28,12 +26,11 @@ func (s *UserValidationService) ValidateUserID(ID *string) []string {
 }
 
 func isUUID(str string) bool {
-	id, err := uuid.Parse(str)
+	id, _ := uuid.Parse(str)
 
 	if id != uuid.Nil {
 		return true
 	} else {
-		log.Println(fmt.Sprintf("Invalid UUID %s Error:=%s", str, err))
 		return false
 	}
 }

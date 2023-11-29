@@ -1,7 +1,6 @@
 package repository_test
 
 import (
-	"fmt"
 	"log"
 	"testing"
 
@@ -66,7 +65,6 @@ func TestUserRepository(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, user, savedUser)
 		_, err2 := repo.SaveUser(user)
-		fmt.Println(err2)
 		assert.Error(t, err2)
 		assert.Equal(t, constant.ErrorNameAlreadyExists, err2.Error())
 
