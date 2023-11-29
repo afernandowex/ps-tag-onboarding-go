@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/model"
+	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/model"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )

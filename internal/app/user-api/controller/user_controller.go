@@ -3,9 +3,9 @@ package controller
 import (
 	"net/http"
 
+	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/model"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/constant"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/errormessage"
-	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/model"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/service"
 	"github.com/labstack/echo/v4"
 )

@@ -10,10 +10,10 @@ import (
 
 	"encoding/json"
 
+	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/model"
+	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/repository"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/controller"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/errormessage"
-	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/model"
-	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/repository"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/routing"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/service"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/validation"

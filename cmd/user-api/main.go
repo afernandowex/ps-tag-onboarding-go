@@ -6,9 +6,9 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/mysql"
+	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/repository"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/controller"
-	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/mysql"
-	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/repository"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/routing"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/service"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/validation"

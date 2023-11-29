@@ -5,8 +5,8 @@ import (
 	"log"
 	"strings"
 
+	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/model"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/constant"
-	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/model"
 	"github.com/google/uuid"
 )
 

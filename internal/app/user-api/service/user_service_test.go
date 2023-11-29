@@ -4,8 +4,8 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/model"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/errormessage"
-	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/model"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )

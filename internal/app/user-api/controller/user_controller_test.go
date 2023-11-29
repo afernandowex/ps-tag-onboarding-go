@@ -7,10 +7,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/model"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/constant"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/controller"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/errormessage"
-	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/model"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
