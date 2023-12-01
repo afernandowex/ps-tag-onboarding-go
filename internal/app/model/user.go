@@ -13,6 +13,10 @@ type User struct {
 	Age       int8      `gorm:"not null" json:"age"`
 }
 
+/*
+ * BeforeCreate is a gorm hook that will be called before creating a new user
+ * see https://gorm.io/docs/hooks.html for more info
+ */
 func (user *User) BeforeCreate(tx *gorm.DB) (err error) {
 	user.ID = uuid.New()
 	return

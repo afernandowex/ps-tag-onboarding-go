@@ -16,22 +16,22 @@ type MockDB struct {
 	mock.Mock
 }
 
-func (m *MockDB) First(dest interface{}, conds ...interface{}) *gorm.DB {
+func (m *MockDB) First(dest any, conds ...any) *gorm.DB {
 	args := m.Called(dest, conds)
 	return args.Get(0).(*gorm.DB)
 }
 
-func (m *MockDB) Create(value interface{}) (tx *gorm.DB) {
+func (m *MockDB) Create(value any) (tx *gorm.DB) {
 	args := m.Called(value)
 	return args.Get(0).(*gorm.DB)
 }
 
-func (m *MockDB) Model(value interface{}) *gorm.DB {
+func (m *MockDB) Model(value any) *gorm.DB {
 	m.Called(value)
 	return &gorm.DB{}
 }
 
-func (m *MockDB) Where(query interface{}, arguments ...interface{}) *gorm.DB {
+func (m *MockDB) Where(query any, arguments ...any) *gorm.DB {
 	m.Called(query, arguments)
 	return &gorm.DB{}
 }
@@ -52,7 +52,7 @@ func TestUserRepository_FindByID(t *testing.T) {
 		gormDB := new(gorm.DB)
 		gormDB.Error = errors.New("record not found")
 
-		mockDB.On("First", user, []interface{}{&user.ID}).Return(gormDB)
+		mockDB.On("First", user, []any{&user.ID}).Return(gormDB)
 
 		_, err := repo.FindByID(&user.ID)
 		assert.EqualError(t, err, "record not found")
@@ -65,7 +65,7 @@ func TestUserRepository_FindByID(t *testing.T) {
 		gormDB := new(gorm.DB)
 		gormDB.Error = errors.New("record not found")
 
-		mockDB.On("First", user, []interface{}{&userID}).Return(gormDB)
+		mockDB.On("First", user, []any{&userID}).Return(gormDB)
 
 		_, err := repo.FindByID(&userID)
 		assert.EqualError(t, err, "record not found")
@@ -83,7 +83,7 @@ func TestUserRepository_FindByID(t *testing.T) {
 		gormDB := new(gorm.DB)
 		gormDB.Error = nil
 
-		mockDB.On("First", user, []interface{}{&userID}).Run(func(args mock.Arguments) {
+		mockDB.On("First", user, []any{&userID}).Run(func(args mock.Arguments) {
 			userArg := args.Get(0).(*model.User)
 			userArg.FirstName = firstName
 			userArg.LastName = lastName

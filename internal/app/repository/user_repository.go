@@ -16,10 +16,10 @@ type IUserRepository interface {
 }
 
 type DB interface {
-	First(dest interface{}, conds ...interface{}) (tx *gorm.DB)
-	Create(value interface{}) (tx *gorm.DB)
-	Model(value interface{}) (tx *gorm.DB)
-	Where(query interface{}, args ...interface{}) (tx *gorm.DB)
+	First(dest any, conds ...any) (tx *gorm.DB)
+	Create(value any) (tx *gorm.DB)
+	Model(value any) (tx *gorm.DB)
+	Where(query any, args ...any) (tx *gorm.DB)
 	Count(count *int64) (tx *gorm.DB)
 }
 
