@@ -37,6 +37,26 @@ func (m *MockUserService) SaveUser(user *model.User) (*model.User, *errormessage
 	return args.Get(0).(*model.User), args.Get(1).(*errormessage.ErrorMessage)
 }
 
+type MockContext struct {
+	mock.Mock
+	echo.Context
+}
+
+func (m *MockContext) Param(name string) string {
+	args := m.Called(name)
+	return args.String(0)
+}
+
+func (m *MockContext) JSON(code int, i interface{}) error {
+	m.Called(code, i)
+	return nil
+}
+
+func (m *MockContext) Response() *echo.Response {
+	rec := httptest.NewRecorder()
+	return echo.NewResponse(rec, echo.New())
+}
+
 func TestUserController_FindUser(t *testing.T) {
 
 	t.Run("Find user success", func(t *testing.T) {

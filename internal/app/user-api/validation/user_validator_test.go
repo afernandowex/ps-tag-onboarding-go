@@ -4,27 +4,11 @@ import (
 	"testing"
 
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/model"
-	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/repository"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/constant"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 )
 
 func TestUserValidationService_ValidateUser(t *testing.T) {
-	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("failed to connect database: %v", err)
-	}
-	if err := db.AutoMigrate(&model.User{}); err != nil {
-		t.Fatalf("failed to migrate database: %v", err)
-	}
-
-	var userRepository repository.IUserRepository = &repository.UserRepository{Db: db}
 	var validator IUserValidationService = &UserValidationService{}
-
-	testUserOne := model.User{FirstName: "Wex", LastName: "User", Email: "wexuser@wexinc.com", Age: 18}
-
-	userRepository.SaveUser(&testUserOne)
 
 	tests := []struct {
 		name     string

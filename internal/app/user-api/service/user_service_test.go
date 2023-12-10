@@ -2,62 +2,22 @@ package service
 
 import (
 	"errors"
+	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/model"
+	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/repository/mocks"
+	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/constant"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/errormessage"
+	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/validation/mock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
-type MockUserRepository struct {
-	Users map[string]*model.User
-}
-
-func (repo *MockUserRepository) FindByID(id *uuid.UUID) (*model.User, error) {
-	user, ok := repo.Users[id.String()]
-	if !ok {
-		return nil, errors.New("User not found")
-	}
-	return user, nil
-}
-
-func (repo *MockUserRepository) SaveUser(user *model.User) (*model.User, error) {
-	user.ID = uuid.New()
-	repo.Users[user.ID.String()] = user
-	return user, nil
-}
-
-func (repo *MockUserRepository) ExistsByFirstNameAndLastName(user *model.User) bool {
-	return false
-}
-
-type MockUserValidationService struct {
-	ValidationErrorsBasedOnUser map[*model.User][]string
-	ValidationErrorsBasedOnID   map[string][]string
-}
-
-func (validator *MockUserValidationService) ValidateUser(user *model.User) []string {
-	return validator.ValidationErrorsBasedOnUser[user]
-}
-
-func (validator *MockUserValidationService) ValidateUserID(ID *string) []string {
-	return validator.ValidationErrorsBasedOnID[*ID]
-}
-
 func TestFindUserByID(t *testing.T) {
-	repo := &MockUserRepository{
-		Users: make(map[string]*model.User),
-	}
-	validator := &MockUserValidationService{
-		ValidationErrorsBasedOnUser: make(map[*model.User][]string),
-		ValidationErrorsBasedOnID:   make(map[string][]string),
-	}
-	t.Cleanup(func() {
-		repo.Users = make(map[string]*model.User)
-		validator.ValidationErrorsBasedOnUser = make(map[*model.User][]string)
-		validator.ValidationErrorsBasedOnID = make(map[string][]string)
-	})
+	repo := new(mocks.IUserRepository)
+	validator := new(mock.IUserValidationService)
 	service := &UserService{
 		Repository: repo,
 		Validator:  validator,
@@ -74,7 +34,8 @@ func TestFindUserByID(t *testing.T) {
 
 		userID := user.ID.String()
 
-		repo.Users[userID] = user
+		repo.On("FindByID", &user.ID).Return(user, nil)
+		validator.On("ValidateUserID", &userID).Return([]string{})
 
 		result, err := service.FindUserByID(&userID)
 		assert.Nil(t, err)
@@ -83,33 +44,30 @@ func TestFindUserByID(t *testing.T) {
 
 	t.Run("Validator test - Return error when invalid UUID", func(t *testing.T) {
 		ID := "invalid"
-		validator.ValidationErrorsBasedOnID[ID] = []string{"Invalid user ID."}
+		validator.On("ValidateUserID", &ID).Return([]string{"Invalid user ID."})
 		result, err := service.FindUserByID(&ID)
 		assert.Nil(t, result)
 		assert.Equal(t, &errormessage.ErrorMessage{ErrorMessageText: "Invalid user ID.", ErrorStatus: 400}, err)
 	})
 
 	t.Run("Repository test - Return error when not found UUID", func(t *testing.T) {
-		ID := uuid.New().String()
-		result, err := service.FindUserByID(&ID)
+		userID := uuid.New()
+		userIDStr := userID.String()
+		validator.On("ValidateUserID", &userIDStr).Return([]string{})
+		repo.On("FindByID", &userID).Return(nil, errors.New(constant.ErrorUserNotFound))
+
+		result, err := service.FindUserByID(&userIDStr)
+
 		assert.Nil(t, result)
-		assert.Equal(t, &errormessage.ErrorMessage{ErrorMessageText: "User not found", ErrorStatus: 404}, err)
+		expectedError := errormessage.ErrorMessage{ErrorMessageText: constant.ErrorUserNotFound, ErrorStatus: http.StatusNotFound}
+		assert.Equal(t, &expectedError, err)
 	})
 }
 
 func TestSaveUser(t *testing.T) {
-	repo := &MockUserRepository{
-		Users: make(map[string]*model.User),
-	}
-	validator := &MockUserValidationService{
-		ValidationErrorsBasedOnUser: make(map[*model.User][]string),
-		ValidationErrorsBasedOnID:   make(map[string][]string),
-	}
-	t.Cleanup(func() {
-		repo.Users = make(map[string]*model.User)
-		validator.ValidationErrorsBasedOnUser = make(map[*model.User][]string)
-		validator.ValidationErrorsBasedOnID = make(map[string][]string)
-	})
+	repo := new(mocks.IUserRepository)
+	validator := new(mock.IUserValidationService)
+
 	service := &UserService{
 		Repository: repo,
 		Validator:  validator,
@@ -123,6 +81,8 @@ func TestSaveUser(t *testing.T) {
 			Age:       25,
 		}
 
+		repo.On("SaveUser", user).Return(user, nil)
+		validator.On("ValidateUser", user).Return([]string{})
 		result, err := service.SaveUser(user)
 		assert.Nil(t, err)
 		assert.Equal(t, user, result)
@@ -139,10 +99,10 @@ func TestSaveUser(t *testing.T) {
 			Email:     "invalidemail",
 			Age:       16,
 		}
-		validator.ValidationErrorsBasedOnUser[user] = []string{"Email is not valid", "Age must be at least 18"}
+		validator.On("ValidateUser", user).Return([]string{constant.ErrorEmailFormat, constant.ErrorAgeMinimum})
 
 		result, err := service.SaveUser(user)
 		assert.Nil(t, result)
-		assert.Equal(t, &errormessage.ErrorMessage{ErrorMessageText: "Email is not valid, Age must be at least 18", ErrorStatus: 400}, err)
+		assert.Equal(t, &errormessage.ErrorMessage{ErrorMessageText: fmt.Sprintf("%s, %s", constant.ErrorEmailFormat, constant.ErrorAgeMinimum), ErrorStatus: 400}, err)
 	})
 }

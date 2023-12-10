@@ -1,7 +1,6 @@
 package repository_test
 
 import (
-	"log"
 	"testing"
 
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/model"
@@ -12,22 +11,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func testCleanUp(db *gorm.DB) {
-	// Reset DB between tests.
-	err := db.Migrator().DropTable(&model.User{})
-	if err != nil {
-		log.Fatalln(err)
-		panic(err)
-	}
-
-	err = db.AutoMigrate(&model.User{})
-	if err != nil {
-		log.Fatalln(err)
-		panic(err)
-	}
-}
-
-func TestUserRepository(t *testing.T) {
+func getRepo(t *testing.T) repository.IUserRepository {
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
 	if err != nil {
 		t.Fatalf("failed to connect database: %v", err)
@@ -36,9 +20,12 @@ func TestUserRepository(t *testing.T) {
 		t.Fatalf("failed to migrate database: %v", err)
 	}
 
-	var repo repository.IUserRepository = &repository.UserRepository{Db: db}
+	return &repository.UserRepository{Db: db}
+}
 
+func TestUserRepository(t *testing.T) {
 	t.Run("SaveUser Success", func(t *testing.T) {
+		repo := getRepo(t)
 		user := &model.User{
 			FirstName: "John",
 			LastName:  "Doe",
@@ -48,13 +35,10 @@ func TestUserRepository(t *testing.T) {
 		savedUser, err := repo.SaveUser(user)
 		assert.NoError(t, err)
 		assert.Equal(t, user, savedUser)
-
-		t.Cleanup(func() {
-			testCleanUp(db)
-		})
 	})
 
 	t.Run("SaveUser Failure due to duplicate entry", func(t *testing.T) {
+		repo := getRepo(t)
 		user := &model.User{
 			FirstName: "John",
 			LastName:  "Doe",
@@ -67,13 +51,10 @@ func TestUserRepository(t *testing.T) {
 		_, err2 := repo.SaveUser(user)
 		assert.Error(t, err2)
 		assert.Equal(t, constant.ErrorNameAlreadyExists, err2.Error())
-
-		t.Cleanup(func() {
-			testCleanUp(db)
-		})
 	})
 
 	t.Run("FindByID Success", func(t *testing.T) {
+		repo := getRepo(t)
 		user := &model.User{
 			FirstName: "Jane",
 			LastName:  "Doe",
@@ -86,19 +67,16 @@ func TestUserRepository(t *testing.T) {
 		foundUser, err := repo.FindByID(&savedUser.ID)
 		assert.NoError(t, err)
 		assert.Equal(t, savedUser, foundUser)
-
-		t.Cleanup(func() {
-			testCleanUp(db)
-		})
 	})
 
 	t.Run("ExistsByFirstNameAndLastName Success", func(t *testing.T) {
+		repo := getRepo(t)
 		user := &model.User{
 			FirstName: "John",
 			LastName:  "Doe",
 			Email:     "john.doe@example.com",
 		}
-		_, err = repo.SaveUser(user)
+		repo.SaveUser(user)
 
 		exists := repo.ExistsByFirstNameAndLastName(user)
 		assert.True(t, exists)
@@ -106,9 +84,5 @@ func TestUserRepository(t *testing.T) {
 		user.LastName = "Smith"
 		exists = repo.ExistsByFirstNameAndLastName(user)
 		assert.False(t, exists)
-
-		t.Cleanup(func() {
-			testCleanUp(db)
-		})
 	})
 }

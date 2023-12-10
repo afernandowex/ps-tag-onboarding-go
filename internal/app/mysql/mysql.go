@@ -24,10 +24,6 @@ func InitialiseMySQL() (db *gorm.DB) {
 	if err = db.AutoMigrate(&model.User{}); err != nil {
 		panic(fmt.Sprintf("failed to instantiate tables %s", err.Error()))
 	}
-	// // Delete all recs
-	// if err = db.Exec("TRUNCATE TABLE users").Error; err != nil {
-	// 	panic(fmt.Sprintf("Unable to delete tables %s", err.Error()))
-	// }
 
 	return db
 }
