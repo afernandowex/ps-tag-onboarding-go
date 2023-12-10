@@ -38,7 +38,7 @@ func testCleanUp(db *gorm.DB) {
 	}
 }
 
-func TestListUsers(t *testing.T) {
+func setupServerAndDB(t *testing.T) (*echo.Echo, *gorm.DB, controller.IUserController, repository.IUserRepository) {
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
 	if err != nil {
 		t.Fatalf("failed to connect database: %v", err)
@@ -53,9 +53,16 @@ func TestListUsers(t *testing.T) {
 	var controller controller.IUserController = &controller.UserController{Service: service}
 	var routes = routing.Routes{UserController: controller}
 
+	e := echo.New()
+	routes.InitializeRoutes(e)
+
+	return e, db, controller, repo
+}
+
+func TestListUsers(t *testing.T) {
+
 	t.Run("Return user not found when invalid user", func(t *testing.T) {
-		e := echo.New()
-		routes.InitializeRoutes(e)
+		e, db, _, _ := setupServerAndDB(t)
 		req := httptest.NewRequest(http.MethodGet, "/find/1", nil)
 		rec := httptest.NewRecorder()
 
@@ -75,11 +82,12 @@ func TestListUsers(t *testing.T) {
 	})
 
 	t.Run("Return user when valid user", func(t *testing.T) {
+
+		e, db, _, repo := setupServerAndDB(t)
+
 		user := model.User{FirstName: "WexFirst", LastName: "WexLast", Email: "wexfirst.wexlast@wexinc.com", Age: 18}
 		repo.SaveUser(&user)
 
-		e := echo.New()
-		routes.InitializeRoutes(e)
 		url := fmt.Sprintf("/find/%s", user.ID.String())
 		req := httptest.NewRequest(http.MethodGet, url, nil)
 		rec := httptest.NewRecorder()
@@ -102,8 +110,7 @@ func TestListUsers(t *testing.T) {
 	})
 
 	t.Run("Add test user 1", func(t *testing.T) {
-		e := echo.New()
-		routes.InitializeRoutes(e)
+		e, db, controller, _ := setupServerAndDB(t)
 
 		userOne := model.User{
 			FirstName: "WexFirstName",
@@ -138,8 +145,7 @@ func TestListUsers(t *testing.T) {
 	})
 
 	t.Run("Add invalid test user 2", func(t *testing.T) {
-		e := echo.New()
-		routes.InitializeRoutes(e)
+		e, db, controller, _ := setupServerAndDB(t)
 
 		userOne := model.User{
 			FirstName: "WexFirst2Name",
