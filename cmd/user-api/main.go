@@ -21,12 +21,15 @@ func main() {
 	var validator validation.IUserValidationService = &validation.UserValidationService{}
 	var service service.IUserService = &service.UserService{Repository: repo, Validator: validator}
 	var controller controller.IUserController = &controller.UserController{Service: service}
+	routes := routing.Routes{UserController: controller}
 
+	startServer(routes)
+}
+
+func startServer(routes routing.Routes) {
 	e := echo.New()
-	routes := routing.Routes{Controller: controller}
 	routes.InitializeRoutes(e)
 
-	// Fetch HttpPort from environment variable
 	httpPortStr := os.Getenv("HTTP_PORT")
 	httpPort, err := strconv.Atoi(httpPortStr)
 	if err != nil {

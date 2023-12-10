@@ -10,10 +10,10 @@ type IRoutes interface {
 }
 
 type Routes struct {
-	Controller controller.IUserController
+	UserController controller.IUserController
 }
 
 func (routes *Routes) InitializeRoutes(e *echo.Echo) {
-	e.GET("/find/:id", routes.Controller.FindUser)
-	e.POST("/save", routes.Controller.SaveUser)
+	e.GET("/find/:id", routes.UserController.FindUser)
+	e.POST("/save", routes.UserController.SaveUser)
 }

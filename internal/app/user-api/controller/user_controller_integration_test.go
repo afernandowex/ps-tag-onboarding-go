@@ -51,7 +51,7 @@ func TestListUsers(t *testing.T) {
 	var validator validation.IUserValidationService = &validation.UserValidationService{}
 	var service service.IUserService = &service.UserService{Repository: repo, Validator: validator}
 	var controller controller.IUserController = &controller.UserController{Service: service}
-	var routes = routing.Routes{Controller: controller}
+	var routes = routing.Routes{UserController: controller}
 
 	t.Run("Return user not found when invalid user", func(t *testing.T) {
 		e := echo.New()
