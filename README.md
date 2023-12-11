@@ -22,19 +22,20 @@ ps-tag-onboarding-go-app-1  | ⇨ http server started on [::]:8080
 
 # Post Requests
 
-To return some test users run:
-
-`curl http://localhost:8080/find/[1-3]` 
-
 To add a user try running this:
 
 `curl -X POST -H "Content-Type: application/json" -d '{"firstName":"WexFirst2","lastName":"WexLast2","email":"wexfirst.wexlast2@wexinc.com","age":20}' http://localhost:8080/save` 
 
-Since the name already exists in the database an error message is received. The test users inserted when the app starts up are [here](https://github.com/afernandowex/ps-tag-onboarding-go/blob/main/internal/app/user-api/mysql/mysql.go#L56)
+If you post the same request twice, an error message is received since the same user already exists in the database. The test users inserted when the app starts up are [here](https://github.com/afernandowex/ps-tag-onboarding-go/blob/main/internal/app/user-api/mysql/mysql.go#L56)
 
 `{"error":"Name already exists"}`
 
 Try changing the first and last name and retrieving the record using the `find` API.
+
+To return some test users run:
+
+`curl http://localhost:8080/find/<guid-from-save>` 
+
 
 # Components chosen for this build
 
