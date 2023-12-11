@@ -23,10 +23,10 @@ func main() {
 	var controller controller.IUserController = &controller.UserController{Service: service}
 	routes := routing.Routes{UserController: controller}
 
-	startServer(routes)
+	startServer(&routes)
 }
 
-func startServer(routes routing.Routes) {
+func startServer(routes *routing.Routes) {
 	e := echo.New()
 	routes.InitializeRoutes(e)
 

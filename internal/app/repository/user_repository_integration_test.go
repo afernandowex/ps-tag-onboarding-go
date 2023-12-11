@@ -11,7 +11,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func getRepo(t *testing.T) repository.IUserRepository {
+func initAndGetRepo(t *testing.T) repository.IUserRepository {
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
 	if err != nil {
 		t.Fatalf("failed to connect database: %v", err)
@@ -25,7 +25,7 @@ func getRepo(t *testing.T) repository.IUserRepository {
 
 func TestUserRepository(t *testing.T) {
 	t.Run("SaveUser Success", func(t *testing.T) {
-		repo := getRepo(t)
+		repo := initAndGetRepo(t)
 		user := &model.User{
 			FirstName: "John",
 			LastName:  "Doe",
@@ -38,7 +38,7 @@ func TestUserRepository(t *testing.T) {
 	})
 
 	t.Run("SaveUser Failure due to duplicate entry", func(t *testing.T) {
-		repo := getRepo(t)
+		repo := initAndGetRepo(t)
 		user := &model.User{
 			FirstName: "John",
 			LastName:  "Doe",
@@ -54,7 +54,7 @@ func TestUserRepository(t *testing.T) {
 	})
 
 	t.Run("FindByID Success", func(t *testing.T) {
-		repo := getRepo(t)
+		repo := initAndGetRepo(t)
 		user := &model.User{
 			FirstName: "Jane",
 			LastName:  "Doe",
@@ -70,7 +70,7 @@ func TestUserRepository(t *testing.T) {
 	})
 
 	t.Run("ExistsByFirstNameAndLastName Success", func(t *testing.T) {
-		repo := getRepo(t)
+		repo := initAndGetRepo(t)
 		user := &model.User{
 			FirstName: "John",
 			LastName:  "Doe",
