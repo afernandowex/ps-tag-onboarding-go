@@ -12,6 +12,7 @@ import (
 
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/model"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/repository"
+	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/constant"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/controller"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/errormessage"
 	"github.com/afernandowex/ps-tag-onboarding-go/internal/app/user-api/routing"
@@ -61,7 +62,7 @@ func setupServerAndDB(t *testing.T) (*echo.Echo, *gorm.DB, controller.IUserContr
 
 func TestListUsers(t *testing.T) {
 
-	t.Run("Return user not found when invalid user", func(t *testing.T) {
+	t.Run("Return bad request when invalid request is sent", func(t *testing.T) {
 		e, db, _, _ := setupServerAndDB(t)
 		req := httptest.NewRequest(http.MethodGet, "/find/1", nil)
 		rec := httptest.NewRecorder()
@@ -174,6 +175,45 @@ func TestListUsers(t *testing.T) {
 			t.Fatalf("failed to unmarshal error response: %v", err)
 		}
 		assert.Equal(t, "Age must be at least 18, Email is not valid", errorMessage.ErrorMessageText)
+		assert.Equal(t, http.StatusBadRequest, errorMessage.ErrorStatus)
+		t.Cleanup(func() {
+			testCleanUp(db)
+		})
+	})
+
+	t.Run("Add existing user and receive user already exist error", func(t *testing.T) {
+		e, db, controller, repo := setupServerAndDB(t)
+
+		userOne := model.User{
+			FirstName: "WexFirst2Name",
+			LastName:  "WexLast2Name",
+			Email:     "wexfirstname.wexlastname@wexinc.com",
+			Age:       18,
+		}
+
+		repo.SaveUser(&userOne) // Save user the first time
+
+		requestBody, err := json.Marshal(userOne)
+		if err != nil {
+			t.Fatalf("Error marshaling JSON: %v", err)
+		}
+		req := httptest.NewRequest(http.MethodPost, "/save", bytes.NewReader(requestBody))
+		headers := make(http.Header)
+		headers.Set("Content-Type", "application/json")
+		req.Header = headers
+
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+
+		controller.SaveUser(c)
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+
+		var errorMessage errormessage.ErrorMessage
+		error := json.Unmarshal(rec.Body.Bytes(), &errorMessage)
+		if error != nil {
+			t.Fatalf("failed to unmarshal error response: %v", err)
+		}
+		assert.Equal(t, constant.ErrorNameAlreadyExists, errorMessage.ErrorMessageText)
 		assert.Equal(t, http.StatusBadRequest, errorMessage.ErrorStatus)
 		t.Cleanup(func() {
 			testCleanUp(db)

@@ -15,16 +15,8 @@ type IUserRepository interface {
 	ExistsByFirstNameAndLastName(user *model.User) bool
 }
 
-type DB interface {
-	First(dest any, conds ...any) (tx *gorm.DB)
-	Create(value any) (tx *gorm.DB)
-	Model(value any) (tx *gorm.DB)
-	Where(query any, args ...any) (tx *gorm.DB)
-	Count(count *int64) (tx *gorm.DB)
-}
-
 type UserRepository struct {
-	Db DB
+	Db *gorm.DB
 }
 
 func (repo *UserRepository) FindByID(id *uuid.UUID) (*model.User, error) {
@@ -41,7 +33,7 @@ func (repo *UserRepository) SaveUser(user *model.User) (*model.User, error) {
 	if repo.ExistsByFirstNameAndLastName(user) {
 		return nil, errors.New(constant.ErrorNameAlreadyExists)
 	}
-	result := repo.Db.Create(&user)
+	result := repo.Db.Create(user)
 	if result.Error != nil {
 		return nil, result.Error
 	}

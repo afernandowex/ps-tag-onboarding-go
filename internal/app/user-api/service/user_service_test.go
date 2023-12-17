@@ -15,15 +15,20 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFindUserByID(t *testing.T) {
+func initialiseService() (*mocks.IUserRepository, *mock.IUserValidationService, *UserService) {
 	repo := new(mocks.IUserRepository)
 	validator := new(mock.IUserValidationService)
 	service := &UserService{
 		Repository: repo,
 		Validator:  validator,
 	}
+	return repo, validator, service
+}
+
+func TestFindUserByID(t *testing.T) {
 
 	t.Run("Return user when valid ID", func(t *testing.T) {
+		repo, validator, service := initialiseService()
 		user := &model.User{
 			ID:        uuid.New(),
 			FirstName: "John",
@@ -43,6 +48,7 @@ func TestFindUserByID(t *testing.T) {
 	})
 
 	t.Run("Validator test - Return error when invalid UUID", func(t *testing.T) {
+		_, validator, service := initialiseService()
 		ID := "invalid"
 		validator.On("ValidateUserID", &ID).Return([]string{"Invalid user ID."})
 		result, err := service.FindUserByID(&ID)
@@ -51,6 +57,7 @@ func TestFindUserByID(t *testing.T) {
 	})
 
 	t.Run("Repository test - Return error when not found UUID", func(t *testing.T) {
+		repo, validator, service := initialiseService()
 		userID := uuid.New()
 		userIDStr := userID.String()
 		validator.On("ValidateUserID", &userIDStr).Return([]string{})
@@ -65,15 +72,9 @@ func TestFindUserByID(t *testing.T) {
 }
 
 func TestSaveUser(t *testing.T) {
-	repo := new(mocks.IUserRepository)
-	validator := new(mock.IUserValidationService)
-
-	service := &UserService{
-		Repository: repo,
-		Validator:  validator,
-	}
 
 	t.Run("Save user when valid user", func(t *testing.T) {
+		repo, validator, service := initialiseService()
 		user := &model.User{
 			FirstName: "John",
 			LastName:  "Doe",
@@ -93,6 +94,7 @@ func TestSaveUser(t *testing.T) {
 	})
 
 	t.Run("Return error when invalid user", func(t *testing.T) {
+		_, validator, service := initialiseService()
 		user := &model.User{
 			FirstName: "John",
 			LastName:  "Doe",
@@ -104,5 +106,39 @@ func TestSaveUser(t *testing.T) {
 		result, err := service.SaveUser(user)
 		assert.Nil(t, result)
 		assert.Equal(t, &errormessage.ErrorMessage{ErrorMessageText: fmt.Sprintf("%s, %s", constant.ErrorEmailFormat, constant.ErrorAgeMinimum), ErrorStatus: 400}, err)
+	})
+
+	t.Run("Return error when name already exists", func(t *testing.T) {
+		repo, validator, service := initialiseService()
+		user := &model.User{
+			FirstName: "John",
+			LastName:  "Doe",
+			Email:     "john.doe@example.com",
+			Age:       25,
+		}
+
+		repo.On("SaveUser", user).Return(nil, errors.New(constant.ErrorNameAlreadyExists))
+		validator.On("ValidateUser", user).Return([]string{})
+
+		result, err := service.SaveUser(user)
+		assert.Nil(t, result)
+		assert.Equal(t, &errormessage.ErrorMessage{ErrorMessageText: constant.ErrorNameAlreadyExists, ErrorStatus: 400}, err)
+	})
+
+	t.Run("Return error when repository returns an error", func(t *testing.T) {
+		repo, validator, service := initialiseService()
+		user := &model.User{
+			FirstName: "John",
+			LastName:  "Doe",
+			Email:     "john.doe@example.com",
+			Age:       25,
+		}
+
+		repo.On("SaveUser", user).Return(nil, errors.New("repository connection error"))
+		validator.On("ValidateUser", user).Return([]string{})
+
+		result, err := service.SaveUser(user)
+		assert.Nil(t, result)
+		assert.Equal(t, &errormessage.ErrorMessage{ErrorMessageText: "repository connection error", ErrorStatus: 500}, err)
 	})
 }

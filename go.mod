@@ -5,6 +5,7 @@ go 1.21.3
 require github.com/google/uuid v1.4.0
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
